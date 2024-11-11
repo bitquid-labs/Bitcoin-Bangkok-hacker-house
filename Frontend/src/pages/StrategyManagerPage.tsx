@@ -1,6 +1,6 @@
 const StrategyManagerPage: React.FC = () => {
   return (
-      <div className="flex flex-col m-16 gap-28 text-white">
+      <div className="flex flex-col my-[5rem] mx-[10rem] gap-28 text-white">
           <div className="card-style rounded-md flex flex-col" >
               <div className="flex gap-10 items-center mx-auto mt-10" >
                   <h1 className="text-4xl" >BQ Labs Pools</h1> 
@@ -102,17 +102,17 @@ const StrategyManagerPage: React.FC = () => {
                       <div className="flex justify-between" >
                           <div className="flex flex-col" >
                               <p className="font-semibold" >Selected Strategy</p> 
-                              <p>Vesting</p> 
+                              <p className="stake-btn text-center" >Vesting</p> 
                           </div> 
 
                           <div className="flex flex-col">
                               <p className="font-semibold">Per Week</p> 
-                              <p>xx%</p> 
+                              <p className="text-center" >xx%</p> 
                           </div> 
 
                           <div className="flex flex-col">
                               <p className="font-semibold">Per Month</p> 
-                              <p>xx%</p> 
+                              <p className="text-center">xx%</p> 
                           </div> 
                       </div> 
                   </div> 
