@@ -89,6 +89,7 @@ const StrategyManagerPage: React.FC = () => {
                           <p>Risk Type:</p> 
                           <p className="stake-btn px-14" >Low</p> 
                       </div>  
+                      <p>Tenure Period</p> 
                       <div className="flex justify-between items-center" >
                           <div className="flex gap-7" >
                               <p>50</p> 
