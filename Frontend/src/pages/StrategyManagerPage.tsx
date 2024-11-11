@@ -20,7 +20,7 @@ const StrategyManagerPage: React.FC = () => {
                   {[0,1,2].map(()=>{
                       return(
 
-                      <div className="flex gap-10 p-36" >
+                      <div className="flex gap-[5.5rem] p-36" >
                           <div className=" w-5/6 mx-auto " >
                               <div className=" bg-[#1F1F1F] py-16 flex items-center justify-between px-[6rem]" >
                                   <p>Pool #1</p> 
@@ -29,12 +29,13 @@ const StrategyManagerPage: React.FC = () => {
                                   <p>2 months</p> 
                               </div> 
                               <div className="px-10 text-center" >
-                                  <div className="bg-[#303030] py-4" >
+                                  <div className="bg-[#303030] py-4 flex items-center justify-center gap-6" >
                                       <p>More Details</p>  
+                                      <img src={"/downarrow.svg"} alt={"downarrow"}/>     
                                   </div> 
                               </div> 
                           </div> 
-                          <button className="self-start w-1/6 green-btn px-14 rounded-md" >Invest</button> 
+                          <button className="self-start w-1/6 py-6 green-btn px-10 rounded-md" >Invest</button> 
                       </div> 
 
                       )
@@ -93,29 +94,29 @@ const StrategyManagerPage: React.FC = () => {
                           <p className="stake-btn px-14" >Low</p> 
                       </div>  
                       <p>Tenure Period</p> 
-                      <div className="flex justify-between items-center" >
-                          <div className="flex gap-7" >
-                              <p>50</p> 
-                              <p>days</p> 
+                      <div className="flex justify-between items-center mt-6">
+                          <div className="w-1/5 rounded-md px-8 flex items-center justify-between gap-16 border-gray-300 border-[0.5px]" >
+                              <p className="font-semibold text-lg">50</p> 
+                              <p className="bg-black px-[1.5rem] py-5 font-semibold">days</p> 
                           </div> 
                           <div>
                               slider
                           </div> 
                       </div> 
                       <p>Rewards (by $0)</p> 
-                      <div className="flex justify-between" >
-                          <div className="flex flex-col" >
-                              <p className="font-semibold" >Selected Strategy</p> 
+                      <div className="flex justify-between">
+                          <div className="flex flex-col">
+                              <p className="font-semibold mb-10">Selected Strategy</p> 
                               <p className="stake-btn text-center" >Vesting</p> 
                           </div> 
 
                           <div className="flex flex-col">
-                              <p className="font-semibold">Per Week</p> 
+                              <p className="font-semibold mb-10">Per Week</p> 
                               <p className="text-center" >xx%</p> 
                           </div> 
 
                           <div className="flex flex-col">
-                              <p className="font-semibold">Per Month</p> 
+                              <p className="font-semibold mb-10">Per Month</p> 
                               <p className="text-center">xx%</p> 
                           </div> 
                       </div> 
