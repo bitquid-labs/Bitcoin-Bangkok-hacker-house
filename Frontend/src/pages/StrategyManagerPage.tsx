@@ -2,18 +2,19 @@ const StrategyManagerPage: React.FC = () => {
   return (
       <div className="flex flex-col m-16 gap-28 text-white">
           <div className="card-style rounded-md flex flex-col" >
-              <div className="flex gap-10 items-center mx-auto w-1/4" >
-                  <hr className="w-1/4" />
-                  <h1>BQ Labs Pools</h1> 
-                  <hr className="w-1/4" />
+              <div className="flex gap-10 items-center mx-auto" >
+                  <h1 className="text-4xl" >BQ Labs Pools</h1> 
               </div> 
           </div> 
           <div className="card-style rounded-md p-36" >
               <div className="flex justify-between items-center" >
-                  <h1 className="text-4xl font-bold" >Selected Pool Name</h1> 
+                  <h1 className="text-3xl font-bold" >Selected Pool Name</h1> 
                   <div className="flex gap-7" >
                       <div>APY: 3-5%</div> 
-                      <div>BOB Chain</div> 
+                      <div className="flex gap-3" >
+                          <p>BOB Chain</p> 
+                          <img src={"/bob.svg"} alt="bob"/> 
+                      </div> 
                   </div> 
               </div> 
               <div className="grid grid-cols-2 gap-10 mt-5">
@@ -33,15 +34,20 @@ const StrategyManagerPage: React.FC = () => {
 
                       <div className="flex justify-between" >
                           <p className="text-2xl" >3.197</p> 
-                          <p>BNB</p> 
+                          <div className="flex items-center" >
+                              <p>BNB</p> 
+                              <img src={"/binomo.svg"} alt="binomo"/> 
+                              <img src={"/bob.svg"} alt="bob"/> 
+                          </div> 
                       </div> 
                       <hr className="w-1/4" />
                       <div className="flex justify-between" >
                           <p>$639.58</p> 
                           <p>Transaction Fee</p> 
                       </div> 
-                      <div className="" >
+                      <div className="flex gap-5" >
                           <p>LIT Token Assigned: 15.6</p> 
+                          <img src={"/binomo.svg"} alt="binomo"/> 
                       </div> 
                       <button className="green-btn py-4 rounded-md" >Deposit</button> 
                   </div> 
