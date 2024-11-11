@@ -67,7 +67,6 @@ interface IGov {
 
 contract InsurancePool is ReentrancyGuard, Ownable {
     using CoverLib for *;
-    error LpNotActive();
 
     struct Pool {
         uint256 id;
@@ -276,9 +275,7 @@ contract InsurancePool is ReentrancyGuard, Ownable {
     }
 
     function deactivatePool(uint256 _poolId) public onlyOwner {
-        if (!pools[_poolId].isActive) {
-            revert LpNotActive();
-        }
+        require(pools[_poolId].isActive, "L);
         pools[_poolId].isActive = false;
     }
 
