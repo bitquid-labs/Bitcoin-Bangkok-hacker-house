@@ -3,7 +3,10 @@ const SelectPoolNameCard: React.FC = () => {
     return (
           <div className="card-style rounded-md p-36" >
               <div className="flex justify-between items-center" >
-                  <h1 className="text-3xl font-bold" >Selected Pool Name</h1> 
+                  <div className="flex items-center gap-4" >
+                      <img src={"/bot.svg"} alt={"bot"}/>
+                      <h1 className="text-3xl font-bold" >Selected Pool Name</h1> 
+                  </div> 
                   <div className="flex gap-7" >
                       <div className="border-gray-300 border-[0.5px] px-12 rounded-md" >APY: 3-5%</div> 
                       <div className="flex gap-3 border-gray-300 border-[0.5px] px-12 rounded-md" >
@@ -54,7 +57,7 @@ const SelectPoolNameCard: React.FC = () => {
                       </div>  
                       <p>Tenure Period</p> 
                       <div className="flex justify-between items-center mt-6">
-                          <div className="w-1/5 rounded-md px-8 flex items-center justify-between gap-16 border-gray-300 border-[0.5px]" >
+                          <div className="w-1/4 rounded-md px-8 flex items-center justify-between gap-16 border-gray-300 border-[0.5px]" >
                               <p className="font-semibold text-lg">50</p> 
                               <p className="bg-black px-[1.5rem] py-5 font-semibold">days</p> 
                           </div> 
