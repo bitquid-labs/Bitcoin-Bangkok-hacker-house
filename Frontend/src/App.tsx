@@ -1,5 +1,4 @@
 import React, { Suspense } from "react";
-import logo from "./logo.svg";
 import {
   Navigate,
   Route,
@@ -7,9 +6,9 @@ import {
   BrowserRouter as Router,
 } from "react-router-dom";
 import "./App.css";
-import MainLayout from "views/MainLayout";
-import { appRoutes } from "constants/routes";
-import NotFoundPage from "pages/NotFoundPage";
+import MainLayout from "./views/MainLayout";
+import { appRoutes } from "./constants/routes";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -30,9 +29,6 @@ function App() {
           <Route path="/" element={<Navigate to={"/dashboard"} />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-        <div className="App">
-          <div className="h-2 p-2">hello world</div>
-        </div>
       </MainLayout>
     </Router>
   );
