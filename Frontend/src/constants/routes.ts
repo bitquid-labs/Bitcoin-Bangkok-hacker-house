@@ -10,7 +10,7 @@ enum AppRoutes {
 
 export const appRoutes = [
   {key: 'Dashboard', path: AppRoutes.Dashboard, element: DashboardPage},
-  {key: 'StrategyManger', path: AppRoutes.StrategyManger, element: DashboardPage},
+  {key: 'StrategyManger', path: AppRoutes.StrategyManger, element: StrategyManagerPage},
 ];
 
 export const headerLinks = [
