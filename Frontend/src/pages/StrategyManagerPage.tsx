@@ -87,7 +87,7 @@ const StrategyManagerPage: React.FC = () => {
                   <div className="p-28 sub-card-style rounded-md bg-gray-600 flex flex-col gap-14">
                       <div className="flex gap-5" >
                           <p>Risk Type:</p> 
-                          <p>Low</p> 
+                          <p className="stake-btn px-14" >Low</p> 
                       </div>  
                       <div className="flex justify-between items-center" >
                           <div className="flex gap-7" >
