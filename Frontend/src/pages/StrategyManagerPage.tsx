@@ -1,4 +1,7 @@
+import React from "react";
+
 const StrategyManagerPage: React.FC = () => {
+
   return (
       <div className="flex flex-col my-[5rem] mx-[10rem] gap-28 text-white">
           <div className="card-style rounded-md flex flex-col" >
