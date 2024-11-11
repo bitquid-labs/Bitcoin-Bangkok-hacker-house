@@ -30,9 +30,6 @@ function App() {
           <Route path="/" element={<Navigate to={"/dashboard"} />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-        <div className="App">
-          <div className="h-2 p-2">hello world</div>
-        </div>
       </MainLayout>
     </Router>
   );
