@@ -2,16 +2,48 @@ const StrategyManagerPage: React.FC = () => {
   return (
       <div className="flex flex-col m-16 gap-28 text-white">
           <div className="card-style rounded-md flex flex-col" >
-              <div className="flex gap-10 items-center mx-auto" >
+              <div className="flex gap-10 items-center mx-auto mt-10" >
                   <h1 className="text-4xl" >BQ Labs Pools</h1> 
+              </div> 
+              <div>
+                  <div className="flex items-center justify-around mt-36" >
+                      <p></p> 
+                      <p>Rating</p> 
+                      <p>APY</p> 
+                      <p>Min Tenure</p> 
+                      <div>
+                      </div> 
+                  </div> 
+                  {[0,1,2].map(()=>{
+                      return(
+
+                      <div className="flex gap-10 p-36" >
+                          <div className=" w-5/6 mx-auto " >
+                              <div className=" bg-[#1F1F1F] py-16 flex items-center justify-between px-[6rem]" >
+                                  <p>Pool #1</p> 
+                                  <p>AAA</p> 
+                                  <p>3-5%</p> 
+                                  <p>2 months</p> 
+                              </div> 
+                              <div className="px-10 text-center" >
+                                  <div className="bg-[#303030] py-4" >
+                                      <p>More Details</p>  
+                                  </div> 
+                              </div> 
+                          </div> 
+                          <button className="self-start w-1/6 green-btn px-14 rounded-md" >Invest</button> 
+                      </div> 
+
+                      )
+                  })}
               </div> 
           </div> 
           <div className="card-style rounded-md p-36" >
               <div className="flex justify-between items-center" >
                   <h1 className="text-3xl font-bold" >Selected Pool Name</h1> 
                   <div className="flex gap-7" >
-                      <div>APY: 3-5%</div> 
-                      <div className="flex gap-3" >
+                      <div className="border-gray-300 border-[0.5px] px-12 rounded-md" >APY: 3-5%</div> 
+                      <div className="flex gap-3 border-gray-300 border-[0.5px] px-12 rounded-md" >
                           <p>BOB Chain</p> 
                           <img src={"/bob.svg"} alt="bob"/> 
                       </div> 
