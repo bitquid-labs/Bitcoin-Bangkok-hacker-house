@@ -6,9 +6,9 @@ import {
   BrowserRouter as Router,
 } from "react-router-dom";
 import "./App.css";
-import MainLayout from "views/MainLayout";
-import { appRoutes } from "constants/routes";
-import NotFoundPage from "pages/NotFoundPage";
+import MainLayout from "./views/MainLayout";
+import { appRoutes } from "./constants/routes";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (

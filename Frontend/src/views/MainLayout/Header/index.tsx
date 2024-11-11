@@ -1,14 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { headerLinks } from "constants/routes";
 import WalletButton from "./WalletButton";
+import { headerLinks } from "../../../constants/routes";
 
 const Header: React.FC = () => {
   const links = headerLinks;
   const { pathname } = useLocation();
 
   return (
-    <div className="w-full bg-dark-200 text-white border-b-[1px] border-b-white/10 px-20 flex items-center gap-16 h-65 relative">
+    <div className="w-full bg-dark-200 text-white border-b-[1px] border-b-white/10 px-20 py-20 flex items-center gap-16 relative">
       <div className="w-full mx-auto flex justify-between items-center max-w-1220">
         <Link
           to="/trade"
@@ -20,7 +20,7 @@ const Header: React.FC = () => {
           </span>
         </Link>
         <div className="flex justify-center items-center gap-">
-          {links.map((link, index) => (
+          {links.map((link: any, index: any) => (
             <Link
               to={link.url}
               target={!link.url.startsWith("/") ? "_blank" : undefined}
@@ -31,7 +31,13 @@ const Header: React.FC = () => {
                   : "text-light-300"
               }`}
             >
-              <div className={`flex gap-10 items-center justify-center py-12 px-25 ${pathname.includes(link.url) ? "border border-[#FFFFFF66] bg-[#E6E6E61A] rounded-10" : ""}`}>
+              <div
+                className={`flex gap-10 items-center justify-center py-12 px-25 ${
+                  pathname.includes(link.url)
+                    ? "border border-[#FFFFFF66] bg-[#E6E6E61A] rounded-10"
+                    : ""
+                }`}
+              >
                 <link.icon className="w-18 h-18" />
                 {link.name}
               </div>

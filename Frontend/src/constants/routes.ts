@@ -1,12 +1,12 @@
 import {lazy} from 'react';
 
-import IconDashboard from 'assets/icons/IconDashboard';
-import IconStrategyManager from 'assets/icons/IconStrategyManager';
-import IconMyAssets from 'assets/icons/IconMyAssets';
+import IconDashboard from '../assets/icons/IconDashboard';
+import IconStrategyManager from '../assets/icons/IconStrategyManager';
+import IconMyAssets from '../assets/icons/IconMyAssets';
 
-const DashboardPage = lazy(() => import('pages/DashboardPage'));
-const StrategyManagerPage = lazy(() => import ('pages/StrategyManagerPage'));
-const MyAssetsPage = lazy(() => import ('pages/MyAssetsPage'));
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
+const StrategyManagerPage = lazy(() => import ('../pages/StrategyManagerPage'));
+const MyAssetsPage = lazy(() => import ('../pages/MyAssetsPage'));
 
 enum AppRoutes {
   Dashboard = '/dashboard',

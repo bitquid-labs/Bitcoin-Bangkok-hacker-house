@@ -2,14 +2,14 @@ import React from "react";
 
 import { IIcon } from "types/common";
 
-const IconMyAssets: React.FC<IIcon> = ({ className }) => {
+const IconUSDC: React.FC<IIcon> = ({ className }) => {
   return (
     <svg
       width="24"
       height="24"
       viewBox="0 0 24 24"
       fill="none"
-      className={className || ""}
+      className={className || ''}
       xmlns="http://www.w3.org/2000/svg"
     >
       <path
@@ -23,4 +23,4 @@ const IconMyAssets: React.FC<IIcon> = ({ className }) => {
   );
 };
 
-export default IconMyAssets;
+export default IconUSDC;
