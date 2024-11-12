@@ -18,7 +18,7 @@ npm install bqjs
 Documentation
 Comprehensive documentation is coming soon! Stay tuned.
 
-For now, check out our [examples](https://github.com/bitquid-labs/bqjs/tree/main/test) for sample usage.
+For now, check out our [examples](https://github.com/bitquid-labs/Bitcoin-Bangkok-hacker-house/tree/main/bqjs/test) for sample usage.
 
 # Getting Started
 
@@ -32,7 +32,7 @@ import { ClientConfig } from "bqjs";
 
 ### Create a client instance
 
-Set up the client instance by specifying your client name and ID cover. You can get the Cover IDs [here](https://github.com/bitquid-labs/bqjs#network-cover-ids)
+Set up the client instance by specifying your client name and ID cover. You can get the Cover IDs [here](https://github.com/bitquid-labs/Bitcoin-Bangkok-hacker-house/tree/main/bqjs#network-cover-ids)
 
 ```javascript
 const protocolName = "Lorenzo Smart Contract";
@@ -87,8 +87,8 @@ The network IDs/ Cover IDs for the clients.
 
 | Network           | Testnet Chain ID    | Mainnet Chain ID |
 | ----------------- | ------------------- | ---------------- |
-| Babylon           | 1                   | 1                |
-| Infstone          | 2                   | 2                |
+| BOB               | 1                   | 1                |
+| ROOTSTOCK         | 2                   | 2                |
 | Merlin            | 686868              | 4200             |
 | Core DAO          | 1115                | 1116             |
 | PWR               | 21000001 (Bitcoin+) | -                |
