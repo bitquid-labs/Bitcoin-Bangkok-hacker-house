@@ -2,15 +2,13 @@ import { ethers } from "ethers";
 import InsuranceAbi from "../abis/InsuranceCover.json";
 
 export enum CustomNetworks {
-  COREDAO = 1115,
-  BEVM = 11503,
-  MERLIN = 686868,  
+  BOB = 808813,
+  ROOTSTOCK = 31,
 }
 
 const coverContractAddress = [
-  "0xEbC11e13375DEc4c43118b8f530b0dc31fF9e4a7",   //CoreDao
-  "0x9552c86e01B431066AddE3096DFB482CbD82A185", //BEVM
-  "0x180e565b81422e9F38e8e852Cd7CA3CD50AB8777",   //Merlin address
+  "0xEbC11e13375DEc4c43118b8f530b0dc31fF9e4a7",   //BOB
+  "0x9552c86e01B431066AddE3096DFB482CbD82A185", //ROOTSTOCK
 ]
 
 export async function connectWallet() {
@@ -95,12 +93,10 @@ export async function calculateCoverFee(id: number, coverValue: number, period: 
 
 export const getCoverAddressByNetwork = (network: CustomNetworks): string => {
   switch (network) {
-    case CustomNetworks.COREDAO:
+    case CustomNetworks.BOB:
       return coverContractAddress[0];
-    case CustomNetworks.BEVM:
+    case CustomNetworks.ROOTSTOCK:
       return coverContractAddress[1];
-    case CustomNetworks.MERLIN:
-      return coverContractAddress[2];
     default:
       return '';
   }

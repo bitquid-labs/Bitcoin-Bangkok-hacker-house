@@ -1,46 +1,110 @@
-# Getting Started with Create React App
+# BQJS - JavaScript SDK for Insurance Cover
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+BQJS is a Javascript library designed to simplify interactions with insurance cover services. It provides easy-to-use functions for retrieving insurance cover details and facilitating insurance purchases.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **Retrieve Cover Information**: Fetch details about available cover for a specific client.
+- **Purchase Insurance Cover**: Easily manage cover purchases, including setting cover value and period.
 
-### `npm start`
+# Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+To install the BQJS SDK, add it to your project using cargo:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```shell
+npm install bqjs
+```
 
-### `npm test`
+Documentation
+Comprehensive documentation is coming soon! Stay tuned.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+For now, check out our [examples](https://github.com/bitquid-labs/Bitcoin-Bangkok-hacker-house/tree/main/bqjs/test) for sample usage.
 
-### `npm run build`
+# Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Import the SDK
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Begin by importing the necessary modules from the SDK:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```javascript
+import { ClientConfig } from "bqjs";
+```
 
-### `npm run eject`
+### Create a client instance
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Set up the client instance by specifying your client name and ID cover. You can get the Cover IDs [here](https://github.com/bitquid-labs/Bitcoin-Bangkok-hacker-house/tree/main/bqjs#network-cover-ids)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```javascript
+const protocolName = "Lorenzo Smart Contract";
+const coverId = 21000001;
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+const client = new ClientConfig(protocolName, coverId);
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Retrieve Cover Information
 
-## Learn More
+Before every user cover purchase , retrieve the current cover details, including the maximum available amount:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```javascript
+const coverInfo = await client.coverInfo();
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+This returns a CoverInfo object containing key details like the risk, capacity, cost, and maximum available coverage.
+
+```javascript
+return {
+  id: Number(coverInfo[0]),
+  name: coverInfo[1],
+  risk: Number(coverInfo[2]),
+  chains: coverInfo[3],
+  capacity: Number(coverInfo[4]),
+  cost: Number(coverInfo[5]),
+  capacityAmount: Number(coverInfo[6]),
+  coverValues: Number(coverInfo[7]),
+  maxAmount: Number(coverInfo[8]),
+  poolId: Number(coverInfo[9]),
+  cid: coverInfo[10],
+};
+```
+
+### Purchase Insurance Cover
+
+This function be called to purchase cover for the client. Takes the cover value, the cover period and the cover fee (to be changed).
+
+```javascript
+let hash = await client.userPurchaseCover(1000000000000000, 120, 10000);
+```
+
+It returns the tx hash of the cover purchase tx.
+
+```
+0xd3ccd983403fa4dca40e16f3cd6fbe0ead0f359a22246dfe66db535a47fc8e36
+```
+
+# Network/ Cover IDs
+
+The network IDs/ Cover IDs for the clients.
+
+| Network           | Testnet Chain ID    | Mainnet Chain ID |
+| ----------------- | ------------------- | ---------------- |
+| BOB               | 1                   | 1                |
+| ROOTSTOCK         | 2                   | 2                |
+| Merlin            | 686868              | 4200             |
+| Core DAO          | 1115                | 1116             |
+| PWR               | 21000001 (Bitcoin+) | -                |
+| Lorenzo           | 83291               | 8329             |
+| Lombard           | 3                   | 3                |
+| Pump BTC          | 4                   | 4                |
+| Octopus Bridge    | 5                   | 5                |
+| Avalon Finance    | 6                   | 6                |
+| Omni BTC          | 7                   | 7                |
+| Zest Protocol     | 8                   | 8                |
+| Liquidium         | 9                   | 9                |
+| Ordeez Protocol   | 10                  | 10               |
+| Eastblue Protocol | 11                  | 11               |
+| Yona Network      | 12                  | 12               |
+| Satoshi Protocol  | 13                  | 13               |
+| Palladium         | 14                  | 14               |
+| Bima BTC          | 15                  | 15               |
+| BitStable         | 16                  | 16               |
+| Rye Harvest       | 17                  | 17               |
