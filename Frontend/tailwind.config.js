@@ -15,7 +15,9 @@ const minFontSize = 4;
 const maxFontSize = 140;
 
 module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
   theme: {
     spacing: {
       ...range(minSpacingPixel, maxSpacingPixel, spacingPixelIncrement).reduce(
@@ -23,7 +25,6 @@ module.exports = {
         {}
       ),
     },
-
     extend: {
       fontSize: {
         ...range(minFontSize, maxFontSize).reduce(
@@ -45,33 +46,6 @@ module.exports = {
       borderRadius: (theme) => ({
         ...theme("spacing"),
       }),
-      boxShadow: {
-        button: "0px 1px 2px 0px rgba(0, 0, 0, 0.05)",
-        "message-container":
-          "0px 2px 5px 0px rgba(255, 255, 255, 0.04), 0px 2px 10px 0px rgba(255, 255, 255, 0.10)",
-      },
-      animation: {
-        slidein: "slidein 0.3s",
-        "noti-spinner": "rotate 2s linear infinite",
-      },
-      keyframes: {
-        slidein: {
-          from: {
-            marginRight: "-300px",
-          },
-          to: {
-            marginRight: "0px",
-          },
-        },
-        rotate: {
-          from: {
-            trasnform: "rotate(0deg)",
-          },
-          to: {
-            transform: "rotate(360deg)",
-          },
-        },
-      },
     },
   },
   plugins: [],

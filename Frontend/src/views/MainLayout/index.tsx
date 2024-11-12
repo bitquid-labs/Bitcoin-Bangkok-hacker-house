@@ -1,15 +1,16 @@
-import React, {PropsWithChildren} from 'react';
+import Header from "./Header";
 
-import Header from './Header';
-import Footer from './Footer';
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
 
-const MainLayout = ({children}: PropsWithChildren) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <>
       <Header />
-      <main>{children}</main>
-      <Footer />
+      {children}
     </>
   );
 };
+
 export default MainLayout;

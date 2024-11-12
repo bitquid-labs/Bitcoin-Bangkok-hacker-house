@@ -1,37 +1,24 @@
-import { Address } from 'viem';
-import { JsonFragment } from '@ethersproject/abi';
-import bqBTCJSON from './abis/bqBTC.json'
-import ICoverJSON from './abis/bqBTC.json'
-import IPoolJSON from './abis/bqBTC.json'
-
-export type AddressesType = {
-  [key: string]: Address;
-};
+import { JsonFragment } from "@ethersproject/abi";
+import GovABI from "./abi/Gov.json";
+import IPoolABI from "./abi/InsurancePool.json"
+import BqBTCABI from "./abi/BQBTC.json"
 
 export type ContractType = {
   abi: JsonFragment[];
-  addresses: AddressesType;
+  address: `0x${string}`;
 };
 
-export const bqBTCContract: ContractType = {
-  abi: bqBTCJSON,
-  addresses: {
-    rootstock: '0x62F7B0030bb0827a2B685eDC028a021168e9eEF7',
-  },
+export const GovContract: ContractType = {
+  abi: GovABI,
+  address: "0xF9ad317C2E6d3B2836258489383363c76b2DBdaA",
 };
 
-
-export const ICoverContract: ContractType = {
-  abi: ICoverJSON,
-  addresses: {
-    rootstock: '0x2047885da51F7f1B24C9186189B6e4bbE902d382',
-  },
+export const IPoolContract: ContractType = {
+  abi: IPoolABI,
+  address: "0x09e63421b068E3c50083fE4AAA3c11bBB260A1BF",
 };
 
-
-export const IPollContract: ContractType = {
-  abi: IPoolJSON,
-  addresses: {
-    rootstock: '0xC0015ace24aa369A842fc89855e03bdEB94b965f',
-  },
-};
+export const BqBTCContract: ContractType = {
+  abi: BqBTCABI,
+  address: "0x8872D630769288D4773933A434185605769127F5",
+}

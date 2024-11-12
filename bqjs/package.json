@@ -1,0 +1,24 @@
+{
+  "name": "bqlabsjs",
+  "version": "1.0.7",
+  "main": "dist/index.js",
+  "module": "dist/index.m.js",
+  "unpkg": "dist/index.umd.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && microbundle --tsconfig tsconfig.json --no-sourcemap",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.3"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8",
+    "microbundle": "^0.15.1"
+  }
+}

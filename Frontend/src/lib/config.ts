@@ -1,20 +1,17 @@
-import { http, createConfig } from 'wagmi'
-import { base, mainnet, optimism } from 'wagmi/chains'
-import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors'
-import { RootStockTest } from '../constants/chains/RootStockTest';
+import {getDefaultConfig} from '@rainbow-me/rainbowkit';
+import {http} from '@wagmi/core';
+import {mainnet, arbitrumSepolia, sepolia,} from '@wagmi/core/chains';
+import { coreDaoTest } from 'constants/chains/coreDaoTest';
+import { bevmTest } from 'constants/chains/bevmTest';
+import { merlinTest } from 'constants/chains/merlinTest';
 
-const projectId = '<WALLETCONNECT_PROJECT_ID>'
-
-export const config = createConfig({
-  chains: [RootStockTest, base],
-  connectors: [
-    injected(),
-    walletConnect({ projectId }),
-    metaMask(),
-    safe(),
-  ],
+export const config = getDefaultConfig({
+  appName: 'bqlab-staking',
+  projectId: 'ce6dae532a54b2279fa33843861685b8',
+  chains: [coreDaoTest, bevmTest, merlinTest],
   transports: {
-    [RootStockTest.id]: http(),
-    [base.id]: http(),
+    [coreDaoTest.id]: http(),
+    [bevmTest.id]: http(),
+    [merlinTest.id]: http(),
   },
-})
+});
