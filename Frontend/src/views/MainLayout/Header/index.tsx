@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import WalletButton from "./WalletButton";
 import { headerLinks } from "../../../constants/routes";
+// import { ConnectKitButton } from "connectkit";
 
 const Header: React.FC = () => {
   const links = headerLinks;
@@ -47,7 +47,7 @@ const Header: React.FC = () => {
 
         {/* <nav className="flex items-center gap-32">
       </nav> */}
-        <WalletButton />
+        {/* <ConnectKitButton /> */}
       </div>
     </div>
   );

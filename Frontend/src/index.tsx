@@ -7,6 +7,7 @@ import "./global.css";
 import { WagmiProvider } from "wagmi";
 import { config } from "lib/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Web3Provider } from "views/MainLayout/Web3Provider";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,11 +17,9 @@ const queryClient = new QueryClient();
 
 root.render(
   <React.StrictMode>
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <App />
-      </QueryClientProvider>
-    </WagmiProvider>
+    <Web3Provider>
+      <App />
+    </Web3Provider>
   </React.StrictMode>
 );
 
