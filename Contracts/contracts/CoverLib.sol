@@ -29,13 +29,103 @@ library CoverLib {
     }
 
     enum RiskType {
-        Low,
-        Medium,
-        High
+        Slashing,
+        SmartContract,
+        Stablecoin,
+        Protocol
     }
 
     struct GenericCover {
         RiskType riskType;
         bytes coverData;
+    }
+
+    struct Voter {
+        bool voted;
+        bool vote;
+        uint256 weight;
+    }
+
+    struct Proposal {
+        uint256 id;
+        uint256 votesFor;
+        uint256 votesAgainst;
+        uint256 createdAt;
+        uint256 deadline;
+        uint256 timeleft;
+        ProposalStaus status;
+        bool executed;
+        ProposalParams proposalParam;
+    }
+
+    struct ProposalParams {
+        address user;
+        CoverLib.RiskType riskType;
+        uint256 coverId;
+        string txHash;
+        string description;
+        uint256 poolId;
+        uint256 claimAmount;
+    }
+
+    enum ProposalStaus {
+        Submitted,
+        Pending,
+        Approved,
+        Claimed,
+        Rejected
+    }
+
+    struct Pool {
+        string poolName;
+        CoverLib.RiskType riskType;
+        uint256 apy;
+        uint256 minPeriod;
+        uint256 tvl;
+        uint256 tcp;
+        bool isActive;
+        uint256 percentageSplitBalance;
+        mapping(address => Deposits) deposits;
+    }
+
+    struct NPool {
+        string poolName;
+        CoverLib.RiskType riskType;
+        uint256 apy;
+        uint256 minPeriod;
+        uint256 tvl;
+        uint256 tcp;
+        bool isActive;
+        uint256 percentageSplitBalance;
+    }
+
+    struct Deposits {
+        address lp;
+        uint256 amount;
+        uint256 poolId;
+        uint256 dailyPayout;
+        Status status;
+        uint256 daysLeft;
+        uint256 startDate;
+        uint256 expiryDate;
+        uint256 accruedPayout;
+    }
+
+    struct PoolInfo {
+        string poolName;
+        uint256 poolId;
+        uint256 dailyPayout;
+        uint256 depositAmount;
+        uint256 apy;
+        uint256 minPeriod;
+        uint256 tvl;
+        uint256 tcp;
+        bool isActive;
+        uint256 accruedPayout;
+    }
+
+    enum Status {
+        Active,
+        Withdrawn
     }
 }

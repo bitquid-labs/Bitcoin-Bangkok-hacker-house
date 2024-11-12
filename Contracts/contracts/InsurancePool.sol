@@ -18,8 +18,14 @@ interface ICover {
     ) external view returns (uint256);
 }
 
+interface IToken {
+    function mint(address account, uint256 amount) external;
+    function burn(address account, uint256 amount) external;
+    function balanceOf(address account) external view returns (uint256);
+}
+
 interface IbqBTC {
-    function bqMint(address account, uint256 amount) external;
+    function mint(address account, uint256 amount) external;
     function burn(address account, uint256 amount) external;
     function transferFrom(
         address from,
@@ -67,34 +73,30 @@ interface IGov {
 
 contract InsurancePool is ReentrancyGuard, Ownable {
     using CoverLib for *;
+    error LpNotActive();
 
     struct Pool {
-        uint256 id;
         string poolName;
         CoverLib.RiskType riskType;
         uint256 apy;
         uint256 minPeriod;
         uint256 tvl;
-        uint256 baseValue;
-        uint256 coverTvl;
-        uint256 tcp;
-        bool isActive;
+        uint256 tcp; // Total claim paid to users
+        bool isActive; // Pool status to handle soft deletion
         uint256 percentageSplitBalance;
-        uint256 investmentArmPercent;
-        uint8 leverage;
-        address asset;
-        AssetDepositType assetType;
+        mapping(address => Deposits) deposits; // Mapping of user address to their deposit
     }
 
-    struct Vault {
-        uint256 id;
-        string vaultName;
-        uint256[] poolIds;
-        uint256 minInv;
-        uint256 maxInv;
+    struct NPool {
+        uint256 poolId;
+        string poolName;
+        CoverLib.RiskType riskType;
+        uint256 apy;
         uint256 minPeriod;
-        AssetDepositType assetType;
-        address asset;
+        uint256 tvl;
+        uint256 tcp; // Total claim paid to users
+        bool isActive; // Pool status to handle soft deletion
+        uint256 percentageSplitBalance;
     }
 
     struct Deposits {
@@ -127,28 +129,15 @@ contract InsurancePool is ReentrancyGuard, Ownable {
         Withdrawn
     }
 
-    enum DepositType {
-        Normal,
-        Vault
-    }
-
-    enum AssetDepositType {
-        Native,
-        ERC20
-    }
-
-    mapping(uint256 => mapping(uint256 => uint256)) vaultPercantageSplits; //vault id to pool id to the pool percentage split;
-    mapping(uint256 => Vault) vaults;
-    mapping(address => mapping(uint256 => mapping(DepositType => Deposits))) deposits;
     mapping(uint256 => CoverLib.Cover[]) poolToCovers;
     mapping(uint256 => Pool) public pools;
     uint256 public poolCount;
-    uint256 public vaultCount;
     address public governance;
     ICover public ICoverContract;
-    IGov public IGovernanceContract;
     IbqBTC public bqBTC;
     address public bqBTCAddress;
+    IGov public IGovernanceContract;
+    IToken public ITokenContract;
     address public coverContract;
     address public initialOwner;
     address[] public participants;
@@ -161,8 +150,13 @@ contract InsurancePool is ReentrancyGuard, Ownable {
     event PoolUpdated(uint256 indexed poolId, uint256 apy, uint256 _minPeriod);
     event ClaimAttempt(uint256, uint256, address);
 
-    constructor(address _initialOwner, address _bqBTC) Ownable(_initialOwner) {
+    constructor(
+        address _initialOwner,
+        address tokenAddress,
+        address _bqBTC
+    ) Ownable(_initialOwner) {
         initialOwner = _initialOwner;
+        ITokenContract = IToken(tokenAddress);
         bqBTC = IbqBTC(_bqBTC);
         bqBTCAddress = _bqBTC;
     }
@@ -171,31 +165,17 @@ contract InsurancePool is ReentrancyGuard, Ownable {
         CoverLib.RiskType _riskType,
         string memory _poolName,
         uint256 _apy,
-        uint256 _minPeriod,
-        uint8 _leverage,
-        uint256 investmentarm,
-        AssetDepositType adt,
-        address asset
+        uint256 _minPeriod
     ) public onlyOwner {
-        require(
-            adt == AssetDepositType.Native || asset != address(0),
-            "Wrong Asset for Deposit"
-        );
-
         poolCount += 1;
         Pool storage newPool = pools[poolCount];
         newPool.poolName = _poolName;
         newPool.apy = _apy;
         newPool.minPeriod = _minPeriod;
         newPool.tvl = 0;
-        newPool.coverTvl = 0;
-        newPool.baseValue = 0;
         newPool.isActive = true;
         newPool.riskType = _riskType;
-        newPool.investmentArmPercent = investmentarm;
-        newPool.leverage = _leverage;
-        newPool.percentageSplitBalance = 100 - investmentarm;
-        newPool.assetType = adt;
+        newPool.percentageSplitBalance = 100;
 
         emit PoolCreated(poolCount, _poolName);
     }
@@ -215,51 +195,6 @@ contract InsurancePool is ReentrancyGuard, Ownable {
         emit PoolUpdated(_poolId, _apy, _minPeriod);
     }
 
-    function createVault(
-        string memory _vaultName,
-        uint256[] memory _poolIds,
-        uint256[] memory poolPercentageSplit,
-        uint256 _minInv,
-        uint256 _maxInv,
-        uint256 _minPeriod,
-        AssetDepositType adt,
-        address asset
-    ) public onlyOwner {
-        require(
-            _poolIds.length == poolPercentageSplit.length,
-            "Wrong number of pool Ids"
-        );
-        require(
-            adt == AssetDepositType.Native || asset != address(0),
-            "Wrong Asset for Deposit"
-        );
-        vaultCount += 1;
-
-        Vault memory vault = Vault({
-            id: vaultCount,
-            vaultName: _vaultName,
-            poolIds: _poolIds,
-            minInv: _minInv,
-            maxInv: _maxInv,
-            minPeriod: _minPeriod,
-            assetType: adt,
-            asset: asset
-        });
-
-        uint256 percentageSplit = 0;
-        for (uint256 i = 0; i <= _poolIds.length; i++) {
-            Pool memory pool = pools[_poolIds[i]];
-            require(pool.assetType == adt, "Different asset for deposit");
-            require(percentageSplit <= 100, "Incorrect percentage split");
-            percentageSplit += poolPercentageSplit[i];
-            vaultPercantageSplits[vaultCount][
-                _poolIds[i]
-            ] = poolPercentageSplit[i];
-        }
-
-        vaults[vaultCount] = vault;
-    }
-
     function reducePercentageSplit(
         uint256 _poolId,
         uint256 __poolPercentageSplit
@@ -275,7 +210,9 @@ contract InsurancePool is ReentrancyGuard, Ownable {
     }
 
     function deactivatePool(uint256 _poolId) public onlyOwner {
-        require(pools[_poolId].isActive, "L);
+        if (!pools[_poolId].isActive) {
+            revert LpNotActive();
+        }
         pools[_poolId].isActive = false;
     }
 
@@ -289,7 +226,7 @@ contract InsurancePool is ReentrancyGuard, Ownable {
             CoverLib.RiskType riskType,
             uint256 apy,
             uint256 minPeriod,
-            uint256 coverTvl,
+            uint256 tvl,
             bool isActive,
             uint256 percentageSplitBalance
         )
@@ -300,32 +237,26 @@ contract InsurancePool is ReentrancyGuard, Ownable {
             pool.riskType,
             pool.apy,
             pool.minPeriod,
-            pool.coverTvl,
+            pool.tvl,
             pool.isActive,
             pool.percentageSplitBalance
         );
     }
 
-    function getAllPools() public view returns (Pool[] memory) {
-        Pool[] memory result = new Pool[](poolCount);
+    function getAllPools() public view returns (NPool[] memory) {
+        NPool[] memory result = new NPool[](poolCount);
         for (uint256 i = 1; i <= poolCount; i++) {
             Pool storage pool = pools[i];
-            result[i - 1] = Pool({
-                id: i,
+            result[i - 1] = NPool({
+                poolId: i,
                 poolName: pool.poolName,
                 riskType: pool.riskType,
                 apy: pool.apy,
                 minPeriod: pool.minPeriod,
                 tvl: pool.tvl,
-                baseValue: pool.baseValue,
-                coverTvl: pool.coverTvl,
                 tcp: pool.tcp,
                 isActive: pool.isActive,
-                percentageSplitBalance: pool.percentageSplitBalance,
-                investmentArmPercent: pool.investmentArmPercent,
-                leverage: pool.leverage,
-                asset: pool.asset,
-                assetType: pool.assetType
+                percentageSplitBalance: pool.percentageSplitBalance
             });
         }
         return result;
@@ -361,7 +292,8 @@ contract InsurancePool is ReentrancyGuard, Ownable {
     ) public view returns (PoolInfo[] memory) {
         uint256 resultCount = 0;
         for (uint256 i = 1; i <= poolCount; i++) {
-            if (deposits[_userAddress][i][DepositType.Normal].amount > 0) {
+            Pool storage pool = pools[i];
+            if (pool.deposits[_userAddress].amount > 0) {
                 resultCount++;
             }
         }
@@ -372,22 +304,18 @@ contract InsurancePool is ReentrancyGuard, Ownable {
 
         for (uint256 i = 1; i <= poolCount; i++) {
             Pool storage pool = pools[i];
-            Deposits memory userDeposit = deposits[_userAddress][i][
-                DepositType.Normal
-            ];
+            Deposits memory userDeposit = pools[i].deposits[_userAddress];
             uint256 claimableDays = ICoverContract.getDepositClaimableDays(
                 _userAddress,
                 i
             );
             uint256 accruedPayout = userDeposit.dailyPayout * claimableDays;
-            if (deposits[_userAddress][i][DepositType.Normal].amount > 0) {
+            if (pool.deposits[_userAddress].amount > 0) {
                 result[resultIndex++] = PoolInfo({
                     poolName: pool.poolName,
                     poolId: i,
-                    dailyPayout: deposits[_userAddress][i][DepositType.Normal]
-                        .dailyPayout,
-                    depositAmount: deposits[_userAddress][i][DepositType.Normal]
-                        .amount,
+                    dailyPayout: pool.deposits[_userAddress].dailyPayout,
+                    depositAmount: pool.deposits[_userAddress].amount,
                     apy: pool.apy,
                     minPeriod: pool.minPeriod,
                     tvl: pool.tvl,
@@ -400,12 +328,14 @@ contract InsurancePool is ReentrancyGuard, Ownable {
         return result;
     }
 
-    function poolWithdraw(uint256 _poolId) public nonReentrant {
+    function redeem(uint256 _poolId) public nonReentrant {
         Pool storage selectedPool = pools[_poolId];
-        Deposits storage userDeposit = deposits[msg.sender][_poolId][
-            DepositType.Normal
-        ];
+        Deposits storage userDeposit = selectedPool.deposits[msg.sender];
 
+        require(
+            ITokenContract.balanceOf(msg.sender) >= userDeposit.amount,
+            "Insufficient qBTC balance to redeem"
+        );
         require(userDeposit.amount > 0, "No deposit found for this address");
         require(userDeposit.status == Status.Active, "Deposit is not active");
         require(
@@ -413,133 +343,57 @@ contract InsurancePool is ReentrancyGuard, Ownable {
             "Deposit period has not ended"
         );
 
+        ITokenContract.burn(msg.sender, userDeposit.amount);
+
         userDeposit.status = Status.Withdrawn;
         selectedPool.tvl -= userDeposit.amount;
-        uint256 baseValue = selectedPool.tvl -
-            ((selectedPool.investmentArmPercent * selectedPool.tvl) / 100);
-
-        uint256 coverTvl = baseValue * selectedPool.leverage;
-        selectedPool.coverTvl = coverTvl;
-        selectedPool.baseValue = baseValue;
         CoverLib.Cover[] memory poolCovers = getPoolCovers(_poolId);
         for (uint i = 0; i < poolCovers.length; i++) {
             ICoverContract.updateMaxAmount(poolCovers[i].id);
         }
 
-        if (selectedPool.assetType == AssetDepositType.ERC20) {
-            bool success = IERC20(selectedPool.asset).transfer(
-                msg.sender,
-                userDeposit.amount
-            );
-            require(success, "ERC20 transfer failed");
-        } else {
-            (bool success, ) = msg.sender.call{value: userDeposit.amount}("");
-            require(success, "Native asset transfer failed");
-        }
+        bqBTC.mint(msg.sender, userDeposit.amount);
 
         emit Withdraw(msg.sender, userDeposit.amount, selectedPool.poolName);
     }
 
-    function vaultWithdraw(uint256 _vaultId) public nonReentrant {
-        Vault memory vault = vaults[_vaultId];
-        uint256 totalFunds;
-        for (uint256 i = 0; i < vault.poolIds.length; i++) {
-            uint256 poolId = vault.poolIds[i];
-            Pool storage selectedPool = pools[poolId];
-            Deposits storage userDeposit = deposits[msg.sender][poolId][
-                DepositType.Vault
-            ];
-
-            require(
-                userDeposit.amount > 0,
-                "No deposit found for this address"
-            );
-            require(
-                userDeposit.status == Status.Active,
-                "Deposit is not active"
-            );
-            require(
-                block.timestamp >= userDeposit.expiryDate,
-                "Deposit period has not ended"
-            );
-
-            userDeposit.status = Status.Withdrawn;
-            selectedPool.tvl -= userDeposit.amount;
-
-            uint256 baseValue = selectedPool.tvl -
-                ((selectedPool.investmentArmPercent * selectedPool.tvl) / 100);
-            uint256 coverTvl = baseValue * selectedPool.leverage;
-            selectedPool.coverTvl = coverTvl;
-            selectedPool.baseValue = baseValue;
-            CoverLib.Cover[] memory poolCovers = getPoolCovers(poolId);
-            for (uint j = 0; j < poolCovers.length; j++) {
-                ICoverContract.updateMaxAmount(poolCovers[j].id);
-            }
-
-            totalFunds += userDeposit.amount;
-        }
-
-        if (vault.assetType == AssetDepositType.ERC20) {
-            bool success = IERC20(vault.asset).transfer(msg.sender, totalFunds);
-            require(success, "ERC20 transfer failed");
-        } else {
-            (bool success, ) = msg.sender.call{value: totalFunds}("");
-            require(success, "Native asset transfer failed");
-        }
-
-        emit Withdraw(msg.sender, totalFunds, vault.vaultName);
-    }
-
-    function poolDeposit(
-        uint256 _poolId,
-        uint256 _amount
-    ) public payable nonReentrant {
+    function deposit(uint256 _poolId, uint256 _amount) public nonReentrant {
         Pool storage selectedPool = pools[_poolId];
 
+        require(_amount > 0, "Amount must be greater than 0");
         require(selectedPool.isActive, "Pool is inactive or does not exist");
-        require(
-            deposits[msg.sender][_poolId][DepositType.Normal].amount == 0,
-            "User has already deposited into this pool"
-        );
 
-        uint256 price;
-
-        if (selectedPool.assetType == AssetDepositType.ERC20) {
-            require(_amount > 0, "Amount must be greater than 0");
-            IERC20(selectedPool.asset).transferFrom(
-                msg.sender,
-                address(this),
-                _amount
-            );
-            selectedPool.tvl += _amount;
-            price = _amount;
+        bqBTC.burn(msg.sender, _amount);
+        if (selectedPool.deposits[msg.sender].amount > 0) {
+            uint256 amount = selectedPool.deposits[msg.sender].amount + _amount;
+            selectedPool.deposits[msg.sender].amount = amount;
+            selectedPool.deposits[msg.sender].expiryDate =
+                block.timestamp +
+                (selectedPool.minPeriod * 1 days);
+            selectedPool.deposits[msg.sender].startDate = block.timestamp;
+            selectedPool.deposits[msg.sender].dailyPayout =
+                (amount * selectedPool.apy) /
+                100 /
+                365;
+            selectedPool.deposits[msg.sender].daysLeft = (selectedPool
+                .minPeriod * 1 days);
         } else {
-            require(msg.value > 0, "Deposit cannot be zero");
-            selectedPool.tvl += msg.value;
-            price = msg.value;
+            uint256 dailyPayout = (_amount * selectedPool.apy) / 100 / 365;
+            selectedPool.deposits[msg.sender] = Deposits({
+                lp: msg.sender,
+                amount: _amount,
+                poolId: _poolId,
+                dailyPayout: dailyPayout,
+                status: Status.Active,
+                daysLeft: selectedPool.minPeriod,
+                startDate: block.timestamp,
+                expiryDate: block.timestamp +
+                    (selectedPool.minPeriod * 1 minutes),
+                accruedPayout: 0
+            });
         }
 
-        uint256 baseValue = selectedPool.tvl -
-            ((selectedPool.investmentArmPercent * selectedPool.tvl) / 100);
-
-        uint256 coverTvl = baseValue * selectedPool.leverage;
-
-        selectedPool.coverTvl = coverTvl;
-        selectedPool.baseValue = baseValue;
-
-        uint256 dailyPayout = (price * selectedPool.apy) / 100 / 365;
-        deposits[msg.sender][_poolId][DepositType.Normal] = Deposits({
-            lp: msg.sender,
-            amount: price,
-            poolId: _poolId,
-            dailyPayout: dailyPayout,
-            status: Status.Active,
-            daysLeft: selectedPool.minPeriod,
-            startDate: block.timestamp,
-            expiryDate: block.timestamp + (selectedPool.minPeriod * 1 minutes),
-            accruedPayout: 0
-        });
-
+        selectedPool.tvl += _amount;
         CoverLib.Cover[] memory poolCovers = getPoolCovers(_poolId);
         for (uint i = 0; i < poolCovers.length; i++) {
             ICoverContract.updateMaxAmount(poolCovers[i].id);
@@ -557,88 +411,10 @@ contract InsurancePool is ReentrancyGuard, Ownable {
             participants.push(msg.sender);
         }
 
+        ITokenContract.mint(msg.sender, _amount);
         participation[msg.sender] += 1;
 
         emit Deposited(msg.sender, _amount, selectedPool.poolName);
-    }
-
-    function vaultDeposit(
-        uint256 _vaultId,
-        uint256 _amount
-    ) public payable nonReentrant {
-        Vault memory vault = vaults[_vaultId];
-        uint256 price;
-        if (vault.assetType == AssetDepositType.ERC20) {
-            require(_amount > 0, "Amount must be greater than 0");
-            bool success = IERC20(vault.asset).transferFrom(
-                msg.sender,
-                address(this),
-                _amount
-            );
-            require(success, "ERC20 transfer failed");
-            price = _amount;
-        } else {
-            require(msg.value > 0, "Deposit cannot be zero");
-            price = msg.value;
-        }
-        for (uint256 i = 0; i < vault.poolIds.length; i++) {
-            uint256 poolId = vault.poolIds[i];
-            Pool storage selectedPool = pools[poolId];
-            uint256 poolpercentage = vaultPercantageSplits[_vaultId][poolId];
-            uint256 poolAmount = (price * poolpercentage) / 100;
-            require(
-                selectedPool.isActive,
-                "Pool is inactive or does not exist"
-            );
-            require(
-                deposits[msg.sender][poolId][DepositType.Vault].amount == 0,
-                "User has already deposited into this pool"
-            );
-            selectedPool.tvl += poolAmount;
-
-            uint256 baseValue = selectedPool.tvl -
-                ((selectedPool.investmentArmPercent * selectedPool.tvl) / 100);
-
-            uint256 coverTvl = baseValue * selectedPool.leverage;
-
-            selectedPool.coverTvl = coverTvl;
-            selectedPool.baseValue = baseValue;
-
-            uint256 dailyPayout = (poolAmount * selectedPool.apy) / 100 / 365;
-            deposits[msg.sender][poolId][DepositType.Vault] = Deposits({
-                lp: msg.sender,
-                amount: poolAmount,
-                poolId: poolId,
-                dailyPayout: dailyPayout,
-                status: Status.Active,
-                daysLeft: selectedPool.minPeriod,
-                startDate: block.timestamp,
-                expiryDate: block.timestamp +
-                    (selectedPool.minPeriod * 1 minutes),
-                accruedPayout: 0
-            });
-
-            CoverLib.Cover[] memory poolCovers = getPoolCovers(poolId);
-            for (uint j = 0; j < poolCovers.length; j++) {
-                ICoverContract.updateMaxAmount(poolCovers[j].id);
-            }
-
-            bool userExists = false;
-            for (uint k = 0; k < participants.length; k++) {
-                if (participants[k] == msg.sender) {
-                    userExists = true;
-                    break;
-                }
-            }
-
-            if (!userExists) {
-                participants.push(msg.sender);
-            }
-
-            participation[msg.sender] += 1;
-        }
-
-        emit Deposited(msg.sender, _amount, vault.vaultName);
     }
 
     function claimProposalFunds(uint256 _proposalId) public nonReentrant {
@@ -675,7 +451,10 @@ contract InsurancePool is ReentrancyGuard, Ownable {
             proposalParam.user
         );
 
-        bqBTC.bqMint(msg.sender, proposalParam.claimAmount);
+        (bool success, ) = msg.sender.call{value: proposalParam.claimAmount}(
+            ""
+        );
+        require(success, "Transfer failed");
 
         emit ClaimPaid(msg.sender, pool.poolName, proposalParam.claimAmount);
     }
@@ -684,9 +463,7 @@ contract InsurancePool is ReentrancyGuard, Ownable {
         uint256 _poolId,
         address _user
     ) public view returns (Deposits memory) {
-        Deposits memory userDeposit = deposits[_user][_poolId][
-            DepositType.Normal
-        ];
+        Deposits memory userDeposit = pools[_poolId].deposits[_user];
         uint256 claimTime = ICoverContract.getLastClaimTime(_user, _poolId);
         uint lastClaimTime;
         if (claimTime == 0) {
