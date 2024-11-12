@@ -4,11 +4,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./CoverLib.sol";
 
 interface IbqBTC {
-    function bqMint(address account, uint256 amount) external;
+    function mint(address account, uint256 amount) external;
     function burn(address account, uint256 amount) external;
     function transferFrom(
         address from,
@@ -31,21 +30,15 @@ interface ILP {
     }
 
     struct Pool {
-        uint256 id;
         string poolName;
         CoverLib.RiskType riskType;
         uint256 apy;
         uint256 minPeriod;
         uint256 tvl;
-        uint256 baseValue;
-        uint256 coverTvl;
-        uint256 tcp;
-        bool isActive;
+        uint256 tcp; // Total claim paid to users
+        bool isActive; // Pool status to handle soft deletion
         uint256 percentageSplitBalance;
-        uint256 investmentArmPercent;
-        uint8 leverage;
-        address asset;
-        AssetDepositType assetType;
+        mapping(address => Deposits) deposits; // Mapping of user address to their deposit
     }
 
     enum Status {
@@ -53,20 +46,10 @@ interface ILP {
         Expired
     }
 
-    enum AssetDepositType {
-        Native,
-        ERC20
-    }
-
     function getUserDeposit(
         uint256 _poolId,
         address _user
     ) external view returns (Deposits memory);
-
-    function getVaultDeposits(
-        uint256 vaultId,
-        address user
-    ) external view returns (Deposits[] memory);
 
     function getPool(
         uint256 _poolId
@@ -106,7 +89,6 @@ interface ILP {
 
 contract InsuranceCover is ReentrancyGuard, Ownable {
     using CoverLib for *;
-    using Math for uint256;
 
     error LpNotActive();
     error InsufficientPoolBalance();
@@ -130,14 +112,13 @@ contract InsuranceCover is ReentrancyGuard, Ownable {
 
     mapping(uint256 => bool) public coverExists;
     mapping(address => mapping(uint256 => uint256)) public NextLpClaimTime;
-    mapping(address => mapping(uint256 => uint256)) public LastVaultClaimTime;
 
     mapping(address => mapping(uint256 => CoverLib.GenericCoverInfo))
         public userCovers;
     mapping(uint256 => CoverLib.Cover) public covers;
 
-    uint256 public coverCount;
     uint256[] public coverIds;
+    uint256 public coverCount;
 
     event CoverCreated(
         uint256 indexed coverId,
@@ -164,10 +145,12 @@ contract InsuranceCover is ReentrancyGuard, Ownable {
     constructor(
         address _lpContract,
         address _initialOwner,
+        address _governance,
         address _bqBTC
     ) Ownable(_initialOwner) {
         lpContract = ILP(_lpContract);
         lpAddress = _lpContract;
+        governance = _governance;
         bqBTC = IbqBTC(_bqBTC);
         bqBTCAddress = _bqBTC;
     }
@@ -417,27 +400,21 @@ contract InsuranceCover is ReentrancyGuard, Ownable {
         view
         returns (CoverLib.Cover[] memory)
     {
+        CoverLib.Cover[] memory availableCovers = new CoverLib.Cover[](
+            coverCount
+        );
         uint256 actualCount = 0;
+
         for (uint256 i = 0; i < coverIds.length; i++) {
             uint256 id = coverIds[i];
             if (coverExists[id]) {
+                availableCovers[actualCount] = covers[id];
                 actualCount++;
             }
         }
-
-        CoverLib.Cover[] memory availableCovers = new CoverLib.Cover[](
-            actualCount
-        );
-
-        uint256 index = 0;
-        for (uint256 i = 0; i < coverIds.length; i++) {
-            uint256 id = coverIds[i];
-            if (coverExists[id]) {
-                availableCovers[index] = covers[id];
-                index++;
-            }
+        assembly {
+            mstore(availableCovers, actualCount)
         }
-
         return availableCovers;
     }
 
@@ -464,7 +441,7 @@ contract InsuranceCover is ReentrancyGuard, Ownable {
     }
 
     function deleteExpiredUserCovers(address _user) external nonReentrant {
-        for (uint256 i = 1; i < coverIds.length; i++) {
+        for (uint256 i = 0; i < coverIds.length; i++) {
             uint256 id = coverIds[i];
             CoverLib.GenericCoverInfo storage userCover = userCovers[_user][id];
             if (userCover.isActive && block.timestamp > userCover.endDay) {
@@ -524,44 +501,11 @@ contract InsuranceCover is ReentrancyGuard, Ownable {
         }
         NextLpClaimTime[msg.sender][_poolId] = block.timestamp;
 
-        bqBTC.bqMint(msg.sender, claimableAmount);
+        bqBTC.mint(msg.sender, claimableAmount);
 
         coverFeeBalance -= claimableAmount;
 
         emit PayoutClaimed(msg.sender, _poolId, claimableAmount);
-    }
-
-    function clamPayoutForVault(uint256 vaultId) external nonReentrant {
-        ILP.Deposits[] memory deposits = lpContract.getVaultDeposits(
-            vaultId,
-            msg.sender
-        );
-        uint256 totalClaim;
-        uint256 lastClaimTime;
-        if (LastVaultClaimTime[msg.sender][vaultId] == 0) {
-            lastClaimTime = deposits[0].startDate;
-        } else {
-            lastClaimTime = LastVaultClaimTime[msg.sender][vaultId];
-        }
-
-        uint256 currentTime = block.timestamp;
-        if (currentTime > deposits[0].expiryDate) {
-            currentTime = deposits[0].expiryDate;
-        }
-        uint256 claimableDays = (currentTime - lastClaimTime) / 5 minutes;
-
-        for (uint256 i = 0; i < deposits.length; i++) {
-            ILP.Deposits memory deposit = deposits[i];
-            uint256 claimableAmount = deposit.dailyPayout * claimableDays;
-            totalClaim += claimableAmount;
-        }
-
-        LastVaultClaimTime[msg.sender][vaultId] = block.timestamp;
-        bqBTC.bqMint(msg.sender, totalClaim);
-
-        coverFeeBalance -= totalClaim;
-
-        emit PayoutClaimed(msg.sender, vaultId, totalClaim);
     }
 
     function getDepositClaimableDays(
